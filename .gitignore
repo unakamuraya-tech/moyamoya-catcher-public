@@ -4,4 +4,5 @@ node_modules/
 *.log
 docs/
 DEV_STATUS.md
+.agent/
 
