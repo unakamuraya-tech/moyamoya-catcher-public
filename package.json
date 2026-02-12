@@ -1,0 +1,26 @@
+{
+  "name": "moyamoya-catcher",
+  "version": "1.1.0",
+  "description": "会話の「漠然と不安」を90日計画と文章パックに変えて現場を動かすエージェント",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --test --test-isolation=none \"tests/**/*.test.js\""
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "firebase-admin": "^13.6.1",
+    "helmet": "^8.0.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

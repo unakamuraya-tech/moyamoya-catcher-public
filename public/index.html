@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>モヤモヤキャッチャー — 「来年度、どうしよう。」お金の不安を、2分で次の一手に</title>
+  <meta name="description" content="地域活動を続けたいあなたのために。AIとの短い会話から、90日の行動計画・お金の作り方・周りへの頼み方をまとめてお渡しします。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- html2pdf.js for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/analytics-config.js"></script>
+  <script>
+    (function () {
+      const measurementId = window.GA_MEASUREMENT_ID;
+      if (!measurementId) return;
+
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function gtag() { dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', measurementId, { send_page_view: true });
+
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(measurementId);
+      document.head.appendChild(script);
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ── Hero / Splash ── -->
+  <div id="hero" class="hero">
+    <div class="hero-content">
+      <div class="hero-icon">💭</div>
+      <h1>モヤモヤキャッチャー</h1>
+      <p class="hero-tagline">「来年度、どうしよう。」<br>お金の不安を、2分で<strong>次の一手</strong>に変えます。</p>
+      <p class="hero-desc">
+        地域活動を続けたいあなたのために。AIとの短い会話から、90日の行動計画・お金の作り方・周りへの頼み方をまとめてお渡しします。
+      </p>
+      <button id="start-btn" class="btn-primary" onclick="startChat()">
+        はじめる
+        <span class="btn-arrow">→</span>
+      </button>
+      <p class="hero-note">会話は約2分で終わります ⏱️ ／ ※ 個人情報は入力しないでください</p>
+    </div>
+    <div class="hero-decoration">
+      <div class="deco-circle c1"></div>
+      <div class="deco-circle c2"></div>
+      <div class="deco-circle c3"></div>
+    </div>
+  </div>
+
+  <!-- ── Main App ── -->
+  <div id="app" class="app hidden">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <span class="header-icon">💭</span>
+        <span class="header-title">モヤモヤキャッチャー</span>
+      </div>
+      <div class="header-right">
+        <div id="progress-bar" class="progress-bar">
+          <div class="progress-bar-track"><div class="progress-bar-fill"></div></div>
+          <span class="progress-bar-label">0/0</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Chat Area -->
+    <main class="main-area">
+      <div class="chat-container">
+        <div id="chat-messages" class="chat-messages" role="log" aria-live="polite"></div>
+        <div id="chips-area" class="chips-area"></div>
+        <div id="free-input-area" class="free-input-area hidden">
+          <input type="text" id="free-input" placeholder="自由に入力してください…" />
+          <button id="free-input-btn" class="btn-send" onclick="submitFreeInput()">送信</button>
+          <button id="free-input-cancel" class="btn-secondary hidden" onclick="cancelFreeInput()">← 選択肢に戻る</button>
+        </div>
+        <div class="safety-notice">
+          <span class="safety-icon">🔒</span>
+          個人情報（氏名、住所、連絡先）は入力しないでください ／ 出力は提案のたたき台です
+        </div>
+      </div>
+    </main>
+
+    <!-- Results Overlay -->
+    <div id="results-overlay" class="results-overlay hidden" role="dialog" aria-modal="true" aria-label="生成結果">
+      <div class="results-container">
+        <div class="results-header">
+          <h2>📋 生成結果</h2>
+          <button class="btn-close" onclick="closeResults()" aria-label="結果画面を閉じる">✕</button>
+        </div>
+        <div id="results-success" class="results-success hidden">
+          🎉 生成が完了しました！
+        </div>
+        <div id="results-mock-notice" class="results-mock-notice hidden">
+          ⚠️ モックデータで表示しています（API未接続）
+        </div>
+        <div class="results-tabs" role="tablist" aria-label="生成結果のタブ">
+          <button class="tab-btn active" data-tab="profile" onclick="switchTab('profile')" role="tab" aria-selected="true" aria-controls="tab-profile" id="tab-btn-profile">
+            📋 活動紹介
+          </button>
+          <button class="tab-btn" data-tab="plan" onclick="switchTab('plan')" role="tab" aria-selected="false" aria-controls="tab-plan" id="tab-btn-plan">
+            📅 90日プラン
+          </button>
+          <button class="tab-btn" data-tab="funding" onclick="switchTab('funding')" role="tab" aria-selected="false" aria-controls="tab-funding" id="tab-btn-funding">
+            💰 資金計画
+          </button>
+          <button class="tab-btn" data-tab="messages" onclick="switchTab('messages')" role="tab" aria-selected="false" aria-controls="tab-messages" id="tab-btn-messages">
+            ✉️ 文章パック
+          </button>
+        </div>
+        <div id="tab-content" class="tab-content">
+          <div id="tab-profile" class="tab-pane active" role="tabpanel" aria-labelledby="tab-btn-profile"></div>
+          <div id="tab-plan" class="tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-plan"></div>
+          <div id="tab-funding" class="tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-funding"></div>
+          <div id="tab-messages" class="tab-pane hidden" role="tabpanel" aria-labelledby="tab-btn-messages"></div>
+        </div>
+
+        <div class="results-actions">
+          <button class="btn-primary" onclick="exportPDF()">
+            📄 PDFでまとめて出力
+          </button>
+          <button class="btn-secondary" onclick="closeResults()">
+            チャットに戻る
+          </button>
+        </div>
+        <div class="results-share">
+          <span class="share-label">🔗 このツールを教える：</span>
+          <button class="btn-share" onclick="shareURL()" aria-label="URLをコピー">📋 URLコピー</button>
+          <button class="btn-share" onclick="shareLINE()" aria-label="LINEで共有">💬 LINE</button>
+          <button class="btn-share" onclick="shareX()" aria-label="Xで共有">𝕏 シェア</button>
+          <a
+            class="btn-share"
+            href="https://docs.google.com/forms/d/e/1FAIpQLScWokQ5cv5AMfW0XXqNFFLTemGerODcuRLDaMRP9LdL8VkKqQ/viewform?usp=header"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="不具合を報告する"
+          >
+            🐞 不具合報告
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay hidden" role="dialog" aria-modal="true" aria-label="生成中">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">生成しています…</p>
+      <p class="loading-sub">90日プラン・資金計画・文章パックを準備中</p>
+      <button id="loading-cancel-btn" class="btn-secondary loading-cancel hidden" onclick="cancelGeneration()">
+        ← やめて戻る
+      </button>
+    </div>
+  </div>
+
+  <!-- Expert Review Overlay -->
+  <div id="review-overlay" class="review-overlay hidden" role="dialog" aria-modal="true" aria-label="専門家レビュー">
+    <div class="review-container">
+      <!-- Phase 1: Reviewer Comments -->
+      <div id="review-phase-reviewers" class="review-phase">
+        <div class="review-header">
+          <h2>📩 この文章を確認しました</h2>
+          <p class="review-subtitle">文章を受け取る側の視点で確認しました</p>
+        </div>
+        <div id="reviewer-cards" class="reviewer-cards"></div>
+        <div id="review-summary-bar" class="review-summary-bar hidden">
+          <span class="review-summary-icon">📝</span>
+          <span id="review-suggestion-count"></span>
+        </div>
+        <div class="review-phase-actions">
+          <button class="btn-primary" onclick="showSuggestions()">
+            改善提案を見る →
+          </button>
+          <button class="btn-secondary" onclick="skipReview()">
+            このまま使う
+          </button>
+        </div>
+      </div>
+
+      <!-- Phase 2: Suggestion Cards (1 at a time) -->
+      <div id="review-phase-suggestions" class="review-phase hidden">
+        <div class="suggestion-header">
+          <h2>📝 改善提案 <span id="suggestion-current">1</span>/<span id="suggestion-total">4</span></h2>
+          <span id="suggestion-percent" class="suggestion-percent">25%</span>
+        </div>
+        <div class="suggestion-progress">
+          <div id="suggestion-progress-bar" class="suggestion-progress-bar" style="width:25%"></div>
+        </div>
+        <div id="suggestion-card" class="suggestion-card"></div>
+        <p id="suggestion-remaining" class="suggestion-remaining"></p>
+      </div>
+
+      <!-- Phase 3: Review Complete -->
+      <div id="review-phase-complete" class="review-phase hidden">
+        <div class="review-complete-content">
+          <div class="review-complete-icon">✅</div>
+          <h2>レビュー完了</h2>
+          <p id="review-complete-summary" class="review-complete-summary"></p>
+          <div class="review-complete-actions">
+            <button class="btn-primary" onclick="finalizeReview()">
+              📄 確定して反映する
+            </button>
+            <button class="btn-secondary" onclick="closeReviewOverlay()">
+              あとで確認する
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
