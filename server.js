@@ -720,11 +720,25 @@ const ALL_ALLOWED_VALUES = new Set(
 );
 
 function getJstDayRange(dateStr) {
-  const target = dateStr ? new Date(`${dateStr}T00:00:00+09:00`) : new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const y = target.getUTCFullYear();
-  const m = String(target.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(target.getUTCDate()).padStart(2, '0');
-  const day = `${y}-${m}-${d}`;
+  let day;
+  if (dateStr !== undefined && dateStr !== null && dateStr !== '') {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      throw new Error('INVALID_DATE');
+    }
+    const parsed = new Date(`${dateStr}T00:00:00+09:00`);
+    if (Number.isNaN(parsed.getTime())) {
+      throw new Error('INVALID_DATE');
+    }
+    day = dateStr;
+  } else {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    day = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Tokyo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(yesterday);
+  }
   const start = new Date(`${day}T00:00:00+09:00`).getTime();
   const end = new Date(`${day}T23:59:59.999+09:00`).getTime();
   return { day, start, end };
@@ -980,6 +994,9 @@ app.get('/api/kpi/daily-report', async (req, res) => {
     const report = buildDailyReport(range, events, source);
     res.json({ success: true, report });
   } catch (e) {
+    if (e.message === 'INVALID_DATE') {
+      return res.status(400).json({ success: false, error_code: 'INVALID_DATE', error_message: 'date must be YYYY-MM-DD (JST)' });
+    }
     res.status(500).json({ success: false, error_code: 'KPI_REPORT_FAILED', error_message: e.message });
   }
 });
@@ -994,6 +1011,9 @@ async function handleDailyKpiNotify(req, res) {
     const notify = await sendDailyNotification(report);
     res.json({ success: true, report, notify });
   } catch (e) {
+    if (e.message === 'INVALID_DATE') {
+      return res.status(400).json({ success: false, error_code: 'INVALID_DATE', error_message: 'date must be YYYY-MM-DD (JST)' });
+    }
     console.error('Daily KPI notify failed:', e.message);
     res.status(500).json({ success: false, error_code: 'KPI_NOTIFY_FAILED', error_message: e.message });
   }

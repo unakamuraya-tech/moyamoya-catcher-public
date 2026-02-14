@@ -10,6 +10,15 @@ delete process.env.GEMINI_API_KEY;
 const request = require('supertest');
 const app = require('../server');
 
+function todayJst() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Tokyo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(new Date());
+}
+
 describe('/api/generate', () => {
   it('returns mock data with success:true and degraded:false when useMock is set', async () => {
     const res = await request(app)
@@ -115,6 +124,35 @@ describe('/api/events (KPI collection)', () => {
     assert.equal(res.body.max, 5000);
     assert.ok(res.body.counts);
     assert.ok(res.body.counts.session_started >= 1);
+  });
+});
+
+describe('/api/kpi/daily-report', () => {
+  it('returns report for explicit JST date', async () => {
+    const day = todayJst();
+
+    await request(app)
+      .post('/api/events')
+      .set('Content-Type', 'text/plain')
+      .send(JSON.stringify({ event: 'session_started', ts: Date.now() }))
+      .expect(204);
+
+    const res = await request(app)
+      .get(`/api/kpi/daily-report?date=${day}`)
+      .expect(200);
+
+    assert.equal(res.body.success, true);
+    assert.equal(res.body.report.day, day);
+    assert.ok((res.body.report.counts.session_started || 0) >= 1);
+  });
+
+  it('returns 400 when date format is invalid', async () => {
+    const res = await request(app)
+      .get('/api/kpi/daily-report?date=2026/02/11')
+      .expect(400);
+
+    assert.equal(res.body.success, false);
+    assert.equal(res.body.error_code, 'INVALID_DATE');
   });
 });
 
