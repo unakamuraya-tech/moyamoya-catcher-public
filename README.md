@@ -1,5 +1,5 @@
-﻿# Moyamoya Catcher (+Deliver)
-
+﻿# Moyamoya Catcher
+ 
 地域で活動する人の「お金・人の不安」を、
 **90日計画 + 資金計画 + 送れる文章**に変換するアプリです。
 
